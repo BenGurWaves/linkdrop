@@ -121,10 +121,9 @@ export default async function UsernamePage({
   // Glyph promo: show roughly 1 in 5 page views
   const showGlyphPromo = new Date().getMinutes() % 5 === 0;
 
-  // Fire-and-forget: page view tracking
-  sb.from("ld_clicks")
-    .insert({ page_id: typedPage.id, link_id: null })
-    .then(() => {});
+  // Page view tracking (awaited — Cloudflare Workers kill process after response)
+  await sb.from("ld_clicks")
+    .insert({ page_id: typedPage.id, link_id: null });
 
   return (
     <BioPage

@@ -20,7 +20,7 @@ const faqItems = [
   {
     question: "What happens after 90 days on free?",
     answer:
-      "Free pages stay live indefinitely. If you signed up for a Pro trial, you can downgrade to free or upgrade to keep Pro features.",
+      "Free pages are live for 90 days. Upgrade to Pro anytime to keep your page live forever.",
   },
   {
     question: "How is this different from Linktree?",

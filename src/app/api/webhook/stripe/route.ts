@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  // Double-HMAC comparison: constant-time by design.
+  // HMAC both values with a random key, then compare the results.
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    crypto.getRandomValues(new Uint8Array(32)),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const [macA, macB] = await Promise.all([
+    crypto.subtle.sign("HMAC", key, encoder.encode(a)),
+    crypto.subtle.sign("HMAC", key, encoder.encode(b)),
+  ]);
+  const viewA = new Uint8Array(macA);
+  const viewB = new Uint8Array(macB);
+  if (viewA.byteLength !== viewB.byteLength) return false;
+  let result = 0;
+  for (let i = 0; i < viewA.byteLength; i++) {
+    result |= viewA[i] ^ viewB[i];
+  }
+  return result === 0;
+}
 
 async function verifyStripeSignature(
   payload: string,
@@ -13,6 +38,13 @@ async function verifyStripeSignature(
   const v1Sig = parts.find((p) => p.startsWith("v1="))?.slice(3);
 
   if (!timestamp || !v1Sig) return false;
+
+  // Replay protection: reject events older than 5 minutes
+  const timestampSeconds = parseInt(timestamp, 10);
+  const now = Math.floor(Date.now() / 1000);
+  if (isNaN(timestampSeconds) || Math.abs(now - timestampSeconds) > 300) {
+    return false;
+  }
 
   const signedPayload = `${timestamp}.${payload}`;
   const encoder = new TextEncoder();
@@ -28,7 +60,7 @@ async function verifyStripeSignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  return expected === v1Sig;
+  return timingSafeEqual(expected, v1Sig);
 }
 
 export async function POST(req: NextRequest) {
@@ -36,9 +68,13 @@ export async function POST(req: NextRequest) {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature") ?? "";
 
-    const valid = await verifyStripeSignature(body, signature, STRIPE_WEBHOOK_SECRET);
-    if (!valid) {
-      return NextResponse.json({ error: "invalid signature" }, { status: 400 });
+    if (!STRIPE_WEBHOOK_SECRET) {
+      console.warn("STRIPE_WEBHOOK_SECRET is not set — skipping signature verification (dev mode)");
+    } else {
+      const valid = await verifyStripeSignature(body, signature, STRIPE_WEBHOOK_SECRET);
+      if (!valid) {
+        return NextResponse.json({ error: "invalid signature" }, { status: 400 });
+      }
     }
 
     const event = JSON.parse(body);

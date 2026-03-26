@@ -51,12 +51,13 @@ export default function AnalyticsPage() {
         return;
       }
 
-      // Get all clicks
+      // Get all clicks (limited to 5000 for performance)
       const { data: clicks } = await supabase
         .from("ld_clicks")
         .select("*")
         .eq("page_id", pageData.id)
-        .order("clicked_at", { ascending: false });
+        .order("clicked_at", { ascending: false })
+        .limit(5000);
 
       const all = (clicks ?? []) as LdClick[];
 

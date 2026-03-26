@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: pages } = await supabase
     .from("ld_pages")
     .select("username")
-    .is("expires_at", null)
+    .or("expires_at.is.null,expires_at.gt.now()")
     .limit(1000);
 
   const userPages: MetadataRoute.Sitemap = (pages ?? []).map((page) => ({

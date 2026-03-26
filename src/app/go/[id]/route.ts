@@ -47,8 +47,8 @@ export async function GET(
   const referrer = request.headers.get("referer") ?? null;
   const { device, browser } = parseDevice(ua);
 
-  // Fire-and-forget click tracking
-  sb.from("ld_clicks")
+  // Click tracking (awaited — Cloudflare Workers kill process after response)
+  await sb.from("ld_clicks")
     .insert({
       link_id: link.id,
       page_id: link.page_id,
@@ -57,8 +57,7 @@ export async function GET(
       device,
       browser,
       referrer,
-    })
-    .then(() => {});
+    });
 
   return NextResponse.redirect(link.url, 302);
 }

@@ -113,32 +113,33 @@ export default function EditorPage() {
       })
       .eq("id", page.id);
 
-    // Delete removed links
+    // Delete removed links (parallel)
     const toDelete = editLinks.filter((l) => l._deleted && l.id);
-    for (const l of toDelete) {
-      await supabase.from("ld_links").delete().eq("id", l.id!);
-    }
+    await Promise.all(
+      toDelete.map((l) => supabase.from("ld_links").delete().eq("id", l.id!))
+    );
 
-    // Upsert remaining links
+    // Upsert remaining links (parallel)
     const remaining = editLinks.filter((l) => !l._deleted);
-    for (let i = 0; i < remaining.length; i++) {
-      const l = remaining[i];
-      if (l.id) {
-        await supabase
-          .from("ld_links")
-          .update({ title: l.title, url: l.url, visible: l.visible, position: i })
-          .eq("id", l.id);
-      } else {
-        await supabase.from("ld_links").insert({
-          page_id: page.id,
-          title: l.title,
-          url: l.url,
-          visible: l.visible,
-          position: i,
-          link_type: "url",
-        });
-      }
-    }
+    await Promise.all(
+      remaining.map((l, i) => {
+        if (l.id) {
+          return supabase
+            .from("ld_links")
+            .update({ title: l.title, url: l.url, visible: l.visible, position: i })
+            .eq("id", l.id);
+        } else {
+          return supabase.from("ld_links").insert({
+            page_id: page.id,
+            title: l.title,
+            url: l.url,
+            visible: l.visible,
+            position: i,
+            link_type: "url",
+          });
+        }
+      })
+    );
 
     // Update local page for preview
     setPage((prev) =>

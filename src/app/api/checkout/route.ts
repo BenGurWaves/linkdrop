@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY!;
 const COUPON_CODE = process.env.COUPON_CODE;
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://linkdrop.calyvent.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://linkdrop.calyvent.com";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +20,19 @@ export async function POST(req: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
+      // Check if coupon was already used by this email
+      const { data: existingActivation } = await supabase
+        .from("coupon_activations")
+        .select("id")
+        .eq("coupon_code", coupon)
+        .eq("email", email)
+        .limit(1)
+        .single();
+
+      if (existingActivation) {
+        return NextResponse.json({ error: "coupon already used" }, { status: 409 });
+      }
+
       // Look up user by email
       const { data: userRows } = await supabase.rpc("get_user_id_by_email", {
         user_email: email,
@@ -34,6 +47,7 @@ export async function POST(req: NextRequest) {
       await supabase.from("coupon_activations").insert({
         user_id: userId,
         coupon_code: coupon,
+        email,
       });
 
       // Upsert subscription

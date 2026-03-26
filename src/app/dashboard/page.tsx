@@ -57,20 +57,23 @@ export default function DashboardHome() {
         .order("position");
       setLinks((linksData ?? []) as LdLink[]);
 
-      // Get stats
-      const { data: clicks } = await supabase
+      // Get stats using count queries (no row fetching)
+      const { count: totalClicksCount } = await supabase
         .from("ld_clicks")
-        .select("id, link_id")
-        .eq("page_id", pageData.id);
+        .select("id", { count: "exact", head: true })
+        .eq("page_id", pageData.id)
+        .not("link_id", "is", null);
 
-      const allClicks = clicks ?? [];
-      const pageViews = allClicks.filter((c) => !c.link_id).length;
-      const linkClicks = allClicks.filter((c) => c.link_id).length;
+      const { count: pageViewsCount } = await supabase
+        .from("ld_clicks")
+        .select("id", { count: "exact", head: true })
+        .eq("page_id", pageData.id)
+        .is("link_id", null);
 
       setStats({
         totalLinks: (linksData ?? []).length,
-        totalClicks: linkClicks,
-        pageViews,
+        totalClicks: totalClicksCount ?? 0,
+        pageViews: pageViewsCount ?? 0,
       });
 
       setLoading(false);

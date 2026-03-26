@@ -81,7 +81,7 @@ export default function Nav({ dashboard }: { dashboard?: boolean }) {
               >
                 pricing
               </Link>
-              <Link href="/sign-in" className="btn btn-dark text-xs">
+              <Link href="/login" className="btn btn-dark text-xs">
                 sign in
               </Link>
             </>

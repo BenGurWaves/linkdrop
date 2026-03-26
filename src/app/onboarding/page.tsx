@@ -178,9 +178,11 @@ export default function OnboardingPage() {
     setSaving(false);
   }
 
-  // Enter step 5 triggers save
+  // Enter step 5 triggers save (guard against double-fire)
+  const savedRef = useRef(false);
   useEffect(() => {
-    if (step === 5) {
+    if (step === 5 && !savedRef.current) {
+      savedRef.current = true;
       savePage();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
