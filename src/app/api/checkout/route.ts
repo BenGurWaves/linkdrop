@@ -20,19 +20,6 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
 
-      // Check if coupon was already used by this email
-      const { data: existingActivation } = await supabase
-        .from("coupon_activations")
-        .select("id")
-        .eq("coupon_code", coupon)
-        .eq("email", email)
-        .limit(1)
-        .single();
-
-      if (existingActivation) {
-        return NextResponse.json({ error: "coupon already used" }, { status: 409 });
-      }
-
       // Look up user via ld_pages (publicly readable, no service role key needed)
       const { data: page } = await supabase
         .from("ld_pages")
