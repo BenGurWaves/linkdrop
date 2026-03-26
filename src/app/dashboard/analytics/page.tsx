@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LdClick } from "@/lib/supabase";
 import Link from "next/link";
+import { isLinkDropPro } from "@/lib/check-pro";
 
 type ClickRow = LdClick & { link_title?: string };
 
@@ -24,15 +25,9 @@ export default function AnalyticsPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) return;
 
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan")
-        .eq("user_id", authData.user.id)
-        .eq("plan", "pro")
-        .limit(1)
-        .single();
+      const pro = await isLinkDropPro(authData.user.id);
 
-      if (!sub) {
+      if (!pro) {
         setIsPro(false);
         setLoading(false);
         return;

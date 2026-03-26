@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import type { LdPage, LdLink } from "@/lib/supabase";
 import BioPage from "@/components/bio-page";
 import Link from "next/link";
+import { isLinkDropPro } from "@/lib/check-pro";
 
 export default function DashboardHome() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function DashboardHome() {
   const [isPro, setIsPro] = useState(false);
   const [stats, setStats] = useState({ totalLinks: 0, totalClicks: 0, pageViews: 0 });
   const [loading, setLoading] = useState(true);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -24,15 +27,9 @@ export default function DashboardHome() {
       const u = { id: authData.user.id, email: authData.user.email ?? "" };
       setUser(u);
 
-      // Check pro
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan")
-        .eq("user_id", u.id)
-        .eq("plan", "pro")
-        .limit(1)
-        .single();
-      setIsPro(!!sub);
+      // Check pro (LinkDrop-specific)
+      const pro = await isLinkDropPro(u.id);
+      setIsPro(pro);
 
       // Get page
       const { data: pageData } = await supabase
@@ -139,15 +136,61 @@ export default function DashboardHome() {
         <Link href="/dashboard/settings" className="btn btn-outline">
           settings
         </Link>
-        <a
-          href={`https://glyph.calyvent.com?url=https://${pageUrl}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-outline"
+        <button
+          onClick={async () => {
+            setQrLoading(true);
+            setQrUrl(null);
+            try {
+              const res = await fetch("/api/glyph", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: `https://${pageUrl}`, title: page.display_name }),
+              });
+              const data = await res.json();
+              if (data.tracking_url) {
+                setQrUrl(data.tracking_url);
+              } else if (data.short_code) {
+                setQrUrl(`https://glyph.calyvent.com/q/${data.short_code}`);
+              } else {
+                setQrUrl(`https://glyph.calyvent.com?url=https://${pageUrl}`);
+              }
+            } catch {
+              setQrUrl(`https://glyph.calyvent.com?url=https://${pageUrl}`);
+            } finally {
+              setQrLoading(false);
+            }
+          }}
+          disabled={qrLoading}
+          className="btn btn-outline disabled:opacity-50"
         >
-          create QR with Glyph
-        </a>
+          {qrLoading ? "creating..." : "create QR with Glyph"}
+        </button>
       </div>
+
+      {/* QR Result */}
+      {qrUrl && (
+        <div className="card mb-8 flex items-center justify-between animate-in">
+          <div>
+            <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-1">qr code created</p>
+            <a
+              href={qrUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-[family-name:var(--font-ui)] text-sm text-terracotta hover:underline"
+            >
+              {qrUrl}
+            </a>
+          </div>
+          <a
+            href={qrUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline text-xs"
+          >
+            open
+          </a>
+        </div>
+      )}
 
       {/* Live Preview */}
       <div className="card p-0 overflow-hidden">

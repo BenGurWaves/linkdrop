@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
           user_id: userId,
           plan: "pro",
           payment_method: "coupon",
+          payment_reference: `ld:coupon:${coupon}`,
           status: "active",
         },
         { onConflict: "user_id" }

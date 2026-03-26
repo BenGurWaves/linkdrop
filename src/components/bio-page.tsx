@@ -24,14 +24,14 @@ export default function BioPage({
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center"
+      className="min-h-screen flex flex-col items-center justify-start px-4 py-12"
       style={{
         ...cssVars,
         backgroundColor: cssVars["--ld-bg"],
         color: cssVars["--ld-text-primary"],
       }}
     >
-      <div className="w-full max-w-[420px] px-5 py-12 flex flex-col items-center gap-5">
+      <div className="w-full max-w-[420px] flex flex-col items-center gap-6 mx-auto">
         {/* Avatar */}
         {page.avatar_url && (
           <img

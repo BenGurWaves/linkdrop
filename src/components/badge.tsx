@@ -18,7 +18,7 @@ export default function Badge() {
         />
       </svg>
       <span className="font-[family-name:var(--font-ui)] text-[9px] uppercase tracking-widest">
-        Made with LinkDrop
+        Made with LinkDrop&trade;
       </span>
     </a>
   );

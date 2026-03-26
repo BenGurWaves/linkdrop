@@ -54,37 +54,46 @@ function LogoSvg() {
   );
 }
 
-export default function Nav({ dashboard }: { dashboard?: boolean }) {
+export default function Nav({
+  dashboard,
+  user,
+}: {
+  dashboard?: boolean;
+  user?: { email: string } | null;
+}) {
+  const showDashboard = dashboard || !!user;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border-light bg-surface-primary/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
         <Link href="/" className="flex items-center gap-2">
           <LogoSvg />
           <span className="text-xl tracking-tight text-text-primary font-[family-name:var(--font-display)]">
-            LinkDrop
+            LinkDrop&trade;
           </span>
         </Link>
 
         <div className="flex items-center gap-5">
-          {dashboard ? (
-            <Link
-              href="/dashboard"
-              className="font-[family-name:var(--font-ui)] text-sm text-text-secondary hover:text-text-primary transition-colors"
-            >
+          <Link
+            href="/"
+            className="font-[family-name:var(--font-ui)] text-sm text-text-secondary hover:text-text-primary transition-colors"
+          >
+            home
+          </Link>
+          <Link
+            href="/pricing"
+            className="font-[family-name:var(--font-ui)] text-sm text-text-secondary hover:text-text-primary transition-colors"
+          >
+            pricing
+          </Link>
+          {showDashboard ? (
+            <Link href="/dashboard" className="btn btn-dark text-xs">
               dashboard
             </Link>
           ) : (
-            <>
-              <Link
-                href="/pricing"
-                className="font-[family-name:var(--font-ui)] text-sm text-text-secondary hover:text-text-primary transition-colors"
-              >
-                pricing
-              </Link>
-              <Link href="/login" className="btn btn-dark text-xs">
-                sign in
-              </Link>
-            </>
+            <Link href="/login" className="btn btn-dark text-xs">
+              sign in
+            </Link>
           )}
         </div>
       </div>

@@ -26,10 +26,10 @@ export async function generateMetadata({
     .single();
 
   if (!page) {
-    return { title: "Not Found — LinkDrop" };
+    return { title: "Not Found — LinkDrop\u2122" };
   }
 
-  const title = page.seo_title ?? `${page.display_name} — LinkDrop`;
+  const title = page.seo_title ?? `${page.display_name} — LinkDrop\u2122`;
   const description =
     page.seo_description ?? page.bio ?? `Check out ${page.display_name}'s links`;
 
@@ -80,22 +80,25 @@ export default async function UsernamePage({
             The owner&apos;s link page is no longer active. Want your own?
           </p>
           <a href="/" className="btn btn-primary">
-            Create your LinkDrop
+            Create your LinkDrop&trade;
           </a>
         </div>
       </div>
     );
   }
 
-  // Check subscription
-  const { data: sub } = await sb
+  // Check LinkDrop-specific subscription
+  const { data: subs } = await sb
     .from("subscriptions")
-    .select("plan")
+    .select("id, payment_reference, status")
     .eq("user_id", typedPage.user_id)
-    .limit(1)
-    .single();
+    .eq("status", "active")
+    .eq("plan", "pro");
 
-  const isPro = sub?.plan === "pro";
+  const isPro = (subs ?? []).some(
+    (sub: { payment_reference?: string | null }) =>
+      sub.payment_reference?.startsWith("ld:")
+  );
 
   // Fetch links
   const { data: linksRaw } = await sb

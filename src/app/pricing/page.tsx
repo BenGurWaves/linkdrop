@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import Nav from "@/components/nav";
+import AuthNav from "@/components/auth-nav";
 import Footer from "@/components/footer";
 import Link from "next/link";
 
@@ -108,7 +108,7 @@ export default function PricingPage() {
   if (isPro) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Nav />
+        <AuthNav />
         <main className="flex flex-1 items-center justify-center px-5 pt-14">
           <div className="text-center animate-in">
             <h1
@@ -135,7 +135,7 @@ export default function PricingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Nav />
+      <AuthNav />
 
       <main className="flex flex-1 flex-col items-center px-5 pt-28 pb-16">
         <div className="w-full max-w-3xl animate-in">

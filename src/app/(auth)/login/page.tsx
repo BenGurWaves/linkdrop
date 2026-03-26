@@ -25,7 +25,29 @@ export default function LoginPage() {
           email,
           password,
         });
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          // If user already exists, auto sign-in instead
+          if (
+            signUpError.message.toLowerCase().includes("already registered") ||
+            signUpError.message.toLowerCase().includes("already been registered") ||
+            signUpError.message.toLowerCase().includes("user already registered")
+          ) {
+            const { data, error: signInError } =
+              await supabase.auth.signInWithPassword({ email, password });
+            if (signInError) throw signInError;
+
+            const { data: page } = await supabase
+              .from("ld_pages")
+              .select("id")
+              .eq("user_id", data.user.id)
+              .limit(1)
+              .single();
+
+            router.push(page ? "/dashboard" : "/onboarding");
+            return;
+          }
+          throw signUpError;
+        }
         router.push("/onboarding");
       } else {
         const { data, error: signInError } =

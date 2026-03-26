@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { themes, getTheme, themeToCSS } from "@/lib/themes";
 import type { LdPage } from "@/lib/supabase";
 import Link from "next/link";
+import { isLinkDropPro } from "@/lib/check-pro";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -25,14 +26,8 @@ export default function SettingsPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) return;
 
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan")
-        .eq("user_id", authData.user.id)
-        .eq("plan", "pro")
-        .limit(1)
-        .single();
-      setIsPro(!!sub);
+      const pro = await isLinkDropPro(authData.user.id);
+      setIsPro(pro);
 
       const { data: pageData } = await supabase
         .from("ld_pages")

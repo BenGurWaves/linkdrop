@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
           user_id: userId,
           plan: "pro",
           payment_method: "stripe",
+          payment_reference: `ld:stripe:${session.id}`,
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           status: "active",

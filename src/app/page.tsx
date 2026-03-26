@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Nav from "@/components/nav";
+import AuthNav from "@/components/auth-nav";
 import Footer from "@/components/footer";
 
 const faqItems = [
@@ -10,7 +10,7 @@ const faqItems = [
   {
     question: "Is it really free?",
     answer:
-      "Yes. Free pages include all core features with a small LinkDrop badge. Pro removes the badge and adds analytics, custom domains, and SEO controls.",
+      "Yes. Free pages include all core features with a small LinkDrop\u2122 badge. Pro removes the badge and adds analytics, custom domains, and SEO controls.",
   },
   {
     question: "Can I use my own domain?",
@@ -25,7 +25,7 @@ const faqItems = [
   {
     question: "How is this different from Linktree?",
     answer:
-      "LinkDrop is designed, not templated. Every page feels intentional — guided setup, organic themes, and no visual clutter. Built for people who care how things look.",
+      "LinkDrop\u2122 is designed, not templated. Every page feels intentional — guided setup, organic themes, and no visual clutter. Built for people who care how things look.",
   },
   {
     question: "Do you sell my data?",
@@ -49,7 +49,7 @@ const faqJsonLd = {
 export default function MarketingHome() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Nav />
+      <AuthNav />
 
       <script
         type="application/ld+json"
@@ -207,7 +207,7 @@ export default function MarketingHome() {
                 "3 organic themes",
                 "guided setup",
                 "QR code via Glyph",
-                "LinkDrop badge",
+                "LinkDrop\u2122 badge",
               ].map((f) => (
                 <li
                   key={f}

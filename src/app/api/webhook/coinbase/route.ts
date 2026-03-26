@@ -87,12 +87,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "user not found" }, { status: 404 });
       }
 
+      const chargeCode = event.event?.data?.code ?? "unknown";
+
       // Upsert subscription
       await supabase.from("subscriptions").upsert(
         {
           user_id: userId,
           plan: "pro",
           payment_method: "crypto",
+          payment_reference: `ld:coinbase:${chargeCode}`,
           status: "active",
         },
         { onConflict: "user_id" }

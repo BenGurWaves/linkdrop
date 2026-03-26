@@ -26,7 +26,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://linkdrop.calyvent.com"),
-  title: "LinkDrop — Elegant Link-in-Bio Pages",
+  title: "LinkDrop\u2122 — Elegant Link-in-Bio Pages",
   description:
     "Create a beautiful, minimalist link-in-bio page in seconds. Free forever with optional pro upgrades. No sign-up walls, no clutter — just your links, presented with quiet confidence.",
   keywords: [
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     "calyvent",
   ],
   openGraph: {
-    title: "LinkDrop — Elegant Link-in-Bio Pages",
+    title: "LinkDrop\u2122 — Elegant Link-in-Bio Pages",
     description:
       "Create a beautiful, minimalist link-in-bio page in seconds. Free forever with optional pro upgrades.",
     url: "https://linkdrop.calyvent.com",
@@ -97,6 +97,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
