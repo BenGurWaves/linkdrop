@@ -24,7 +24,7 @@ export default function BioPage({
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-start px-4 py-12"
+      className="min-h-screen w-full flex flex-col items-center justify-start px-4 py-12"
       style={{
         ...cssVars,
         backgroundColor: cssVars["--ld-bg"],

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       const { createClient } = await import("@supabase/supabase-js");
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
 
       // Check if coupon was already used by this email
@@ -33,34 +33,66 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "coupon already used" }, { status: 409 });
       }
 
-      // Look up user by email
-      const { data: userRows } = await supabase.rpc("get_user_id_by_email", {
-        user_email: email,
-      });
+      // Look up user via ld_pages (publicly readable, no service role key needed)
+      const { data: page } = await supabase
+        .from("ld_pages")
+        .select("user_id")
+        .eq("username", email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, ""))
+        .single();
 
-      const userId = userRows?.[0]?.id;
+      // If can't find by username derivation, try checking all pages for this email
+      // by looking up the user directly from ld_pages
+      let userId = page?.user_id;
+
       if (!userId) {
-        return NextResponse.json({ error: "user not found" }, { status: 404 });
+        // Try RPC as fallback (works if service role key is set)
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (serviceKey && serviceKey !== "placeholder") {
+          const adminClient = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            serviceKey
+          );
+          const { data: userRows } = await adminClient.rpc("get_user_id_by_email", {
+            user_email: email,
+          });
+          userId = userRows?.[0]?.id;
+        }
       }
 
-      // Record coupon activation
-      await supabase.from("coupon_activations").insert({
-        user_id: userId,
-        coupon_code: coupon,
-        email,
-      });
+      if (!userId) {
+        return NextResponse.json(
+          { error: "account not found. sign up first, then apply the coupon from the pricing page." },
+          { status: 404 }
+        );
+      }
 
-      // Upsert subscription
-      await supabase.from("subscriptions").upsert(
-        {
+      // Record coupon activation (table has: email, coupon_code, activated_at)
+      await supabase.from("coupon_activations").upsert(
+        { email: email.toLowerCase(), coupon_code: coupon },
+        { onConflict: "email" }
+      );
+
+      // Insert subscription (not upsert — user might have a Glyph sub already)
+      // Delete any existing LinkDrop subscription first, then insert
+      const { data: existingSubs } = await supabase
+        .from("subscriptions")
+        .select("id, payment_reference")
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      const hasLdSub = existingSubs?.some((s: { payment_reference?: string | null }) =>
+        s.payment_reference?.startsWith("ld:")
+      );
+
+      if (!hasLdSub) {
+        await supabase.from("subscriptions").insert({
           user_id: userId,
           plan: "pro",
           payment_method: "coupon",
           payment_reference: `ld:coupon:${coupon}`,
           status: "active",
-        },
-        { onConflict: "user_id" }
-      );
+        });
+      }
 
       // Clear expires_at
       await supabase
