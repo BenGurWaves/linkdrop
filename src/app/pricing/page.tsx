@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { isLinkDropPro } from "@/lib/check-pro";
 import AuthNav from "@/components/auth-nav";
 import Footer from "@/components/footer";
 import Link from "next/link";
@@ -20,14 +21,8 @@ export default function PricingPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (authData.user) {
         setEmail(authData.user.email ?? "");
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("plan")
-          .eq("user_id", authData.user.id)
-          .eq("plan", "pro")
-          .limit(1)
-          .single();
-        setIsPro(!!sub);
+        const pro = await isLinkDropPro(authData.user.id, supabase);
+        setIsPro(pro);
       }
       setCheckingAuth(false);
     }
