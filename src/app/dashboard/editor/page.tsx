@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LdPage, LdLink } from "@/lib/supabase";
 import BioPage from "@/components/bio-page";
@@ -17,6 +17,7 @@ type EditableLink = {
 
 export default function EditorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [page, setPage] = useState<LdPage | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -30,12 +31,31 @@ export default function EditorPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) return;
 
-      const { data: pageData } = await supabase
-        .from("ld_pages")
-        .select("*")
-        .eq("user_id", authData.user.id)
-        .limit(1)
-        .single();
+      const pageParam = searchParams.get("page");
+
+      let pageData;
+      if (pageParam) {
+        // Load specific page by ID (must belong to user)
+        const { data } = await supabase
+          .from("ld_pages")
+          .select("*")
+          .eq("id", pageParam)
+          .eq("user_id", authData.user.id)
+          .single();
+        pageData = data;
+      }
+
+      if (!pageData) {
+        // Fallback: load first page
+        const { data } = await supabase
+          .from("ld_pages")
+          .select("*")
+          .eq("user_id", authData.user.id)
+          .order("created_at")
+          .limit(1)
+          .single();
+        pageData = data;
+      }
 
       if (!pageData) {
         router.push("/onboarding");
@@ -65,7 +85,7 @@ export default function EditorPage() {
       );
     }
     load();
-  }, [router]);
+  }, [router, searchParams]);
 
   function updateLink(index: number, field: keyof EditableLink, value: string | boolean) {
     setEditLinks((prev) =>

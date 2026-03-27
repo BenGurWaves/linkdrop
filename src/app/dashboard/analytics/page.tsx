@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LdClick } from "@/lib/supabase";
 import Link from "next/link";
@@ -11,6 +11,7 @@ type ClickRow = LdClick & { link_title?: string };
 
 export default function AnalyticsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pageViews, setPageViews] = useState(0);
@@ -34,12 +35,29 @@ export default function AnalyticsPage() {
       }
       setIsPro(true);
 
-      const { data: pageData } = await supabase
-        .from("ld_pages")
-        .select("id")
-        .eq("user_id", authData.user.id)
-        .limit(1)
-        .single();
+      const pageParam = searchParams.get("page");
+
+      let pageData;
+      if (pageParam) {
+        const { data } = await supabase
+          .from("ld_pages")
+          .select("id")
+          .eq("id", pageParam)
+          .eq("user_id", authData.user.id)
+          .single();
+        pageData = data;
+      }
+
+      if (!pageData) {
+        const { data } = await supabase
+          .from("ld_pages")
+          .select("id")
+          .eq("user_id", authData.user.id)
+          .order("created_at")
+          .limit(1)
+          .single();
+        pageData = data;
+      }
 
       if (!pageData) {
         router.push("/onboarding");
@@ -120,7 +138,7 @@ export default function AnalyticsPage() {
       setLoading(false);
     }
     load();
-  }, [router]);
+  }, [router, searchParams]);
 
   if (loading) return null;
 
@@ -270,10 +288,10 @@ export default function AnalyticsPage() {
                       {c.link_title}
                     </td>
                     <td className="font-[family-name:var(--font-body)] text-sm text-text-secondary py-2 pr-4">
-                      {c.country ?? "—"}
+                      {c.country ?? "\u2014"}
                     </td>
                     <td className="font-[family-name:var(--font-body)] text-sm text-text-secondary py-2 pr-4">
-                      {c.device ?? "—"}
+                      {c.device ?? "\u2014"}
                     </td>
                     <td className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary py-2">
                       {new Date(c.clicked_at).toLocaleString()}

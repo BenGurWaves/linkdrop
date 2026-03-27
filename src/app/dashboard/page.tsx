@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LdPage, LdLink } from "@/lib/supabase";
 import BioPage from "@/components/bio-page";
@@ -10,8 +10,10 @@ import { isLinkDropPro } from "@/lib/check-pro";
 
 export default function DashboardHome() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [page, setPage] = useState<LdPage | null>(null);
+  const [pages, setPages] = useState<LdPage[]>([]);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [links, setLinks] = useState<LdLink[]>([]);
   const [isPro, setIsPro] = useState(false);
   const [stats, setStats] = useState({ totalLinks: 0, totalClicks: 0, pageViews: 0 });
@@ -19,6 +21,7 @@ export default function DashboardHome() {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
 
+  // Load all pages for user
   useEffect(() => {
     async function load() {
       const { data: authData } = await supabase.auth.getUser();
@@ -27,44 +30,55 @@ export default function DashboardHome() {
       const u = { id: authData.user.id, email: authData.user.email ?? "" };
       setUser(u);
 
-      // Check pro (LinkDrop-specific)
       const pro = await isLinkDropPro(u.id);
       setIsPro(pro);
 
-      // Get page
-      const { data: pageData } = await supabase
+      const { data: pagesData } = await supabase
         .from("ld_pages")
         .select("*")
         .eq("user_id", u.id)
-        .limit(1)
-        .single();
+        .order("created_at");
 
-      if (!pageData) {
+      if (!pagesData || pagesData.length === 0) {
         router.push("/onboarding");
         return;
       }
 
-      setPage(pageData as LdPage);
+      const allPages = pagesData as LdPage[];
+      setPages(allPages);
 
-      // Get links
+      // Select page from query param or default to first
+      const pageParam = searchParams.get("page");
+      const initial = pageParam
+        ? allPages.find((p) => p.id === pageParam) ?? allPages[0]
+        : allPages[0];
+      setSelectedPageId(initial.id);
+    }
+    load();
+  }, [router, searchParams]);
+
+  // Load links + stats when selected page changes
+  useEffect(() => {
+    if (!selectedPageId) return;
+
+    async function loadPageData() {
       const { data: linksData } = await supabase
         .from("ld_links")
         .select("*")
-        .eq("page_id", pageData.id)
+        .eq("page_id", selectedPageId)
         .order("position");
       setLinks((linksData ?? []) as LdLink[]);
 
-      // Get stats using count queries (no row fetching)
       const { count: totalClicksCount } = await supabase
         .from("ld_clicks")
         .select("id", { count: "exact", head: true })
-        .eq("page_id", pageData.id)
+        .eq("page_id", selectedPageId)
         .not("link_id", "is", null);
 
       const { count: pageViewsCount } = await supabase
         .from("ld_clicks")
         .select("id", { count: "exact", head: true })
-        .eq("page_id", pageData.id)
+        .eq("page_id", selectedPageId)
         .is("link_id", null);
 
       setStats({
@@ -75,11 +89,12 @@ export default function DashboardHome() {
 
       setLoading(false);
     }
-    load();
-  }, [router]);
+    loadPageData();
+  }, [selectedPageId]);
 
-  if (loading || !page) return null;
+  if (loading || pages.length === 0) return null;
 
+  const page = pages.find((p) => p.id === selectedPageId) ?? pages[0];
   const pageUrl = `linkdrop.calyvent.com/${page.username}`;
 
   return (
@@ -99,6 +114,46 @@ export default function DashboardHome() {
           )}
         </div>
       </div>
+
+      {/* Page Switcher — only visible when user has multiple pages */}
+      {pages.length > 1 && (
+        <div className="flex gap-3 mb-8 overflow-x-auto pb-1">
+          {pages.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setSelectedPageId(p.id)}
+              className={`shrink-0 rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                p.id === selectedPageId
+                  ? "border-terracotta bg-surface-secondary"
+                  : "border-border-light hover:border-border-default"
+              }`}
+            >
+              <p className="font-[family-name:var(--font-display)] text-sm font-medium text-text-primary">
+                {p.display_name}
+              </p>
+              <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mt-0.5">
+                /{p.username}
+              </p>
+            </button>
+          ))}
+          {isPro && (
+            <Link
+              href="/onboarding"
+              className="shrink-0 flex items-center justify-center rounded-xl border-2 border-dashed border-border-light px-4 py-3 text-text-tertiary hover:border-border-default hover:text-text-secondary transition-all"
+            >
+              <span className="font-[family-name:var(--font-ui)] text-sm">+ new page</span>
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Upgrade note for free users */}
+      {!isPro && pages.length === 1 && (
+        <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-6">
+          upgrade to pro to create pages for multiple brands
+        </p>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -130,10 +185,10 @@ export default function DashboardHome() {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-8">
-        <Link href="/dashboard/editor" className="btn btn-dark">
+        <Link href={`/dashboard/editor?page=${page.id}`} className="btn btn-dark">
           edit links
         </Link>
-        <Link href="/dashboard/settings" className="btn btn-outline">
+        <Link href={`/dashboard/settings?page=${page.id}`} className="btn btn-outline">
           settings
         </Link>
         <button

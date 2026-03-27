@@ -11,6 +11,7 @@ import {
   type Category,
 } from "@/lib/onboarding-logic";
 import { getTheme, themeToCSS } from "@/lib/themes";
+import { isLinkDropPro } from "@/lib/check-pro";
 import Nav from "@/components/nav";
 import BioPage from "@/components/bio-page";
 import type { LdPage, LdLink } from "@/lib/supabase";
@@ -51,16 +52,35 @@ export default function OnboardingPage() {
   // Step 5
   const [saving, setSaving] = useState(false);
   const [liveUrl, setLiveUrl] = useState("");
+  const [newPageId, setNewPageId] = useState<string | null>(null);
 
-  // Auth guard
+  // Auth guard — Pro users can create additional pages, free users with a page get redirected
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    async function checkAccess() {
+      const { data } = await supabase.auth.getUser();
       if (!data.user) {
         router.push("/login");
-      } else {
-        setUserId(data.user.id);
+        return;
       }
-    });
+      setUserId(data.user.id);
+
+      // Check if user already has a page
+      const { data: existingPage } = await supabase
+        .from("ld_pages")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .limit(1)
+        .single();
+
+      if (existingPage) {
+        // Has a page already — only Pro users can create more
+        const pro = await isLinkDropPro(data.user.id);
+        if (!pro) {
+          router.push("/dashboard");
+        }
+      }
+    }
+    checkAccess();
   }, [router]);
 
   // Username availability check (debounced)
@@ -175,6 +195,7 @@ export default function OnboardingPage() {
     }
 
     setLiveUrl(`linkdrop.calyvent.com/${username}`);
+    setNewPageId(page.id);
     setSaving(false);
   }
 
@@ -560,7 +581,7 @@ export default function OnboardingPage() {
                       create a QR code with Glyph
                     </a>
                     <button
-                      onClick={() => router.push("/dashboard")}
+                      onClick={() => router.push(newPageId ? `/dashboard?page=${newPageId}` : "/dashboard")}
                       className="btn btn-primary w-full"
                     >
                       edit in dashboard
