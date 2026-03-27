@@ -14,6 +14,7 @@ export default function PricingPage() {
   const [cryptoLoading, setCryptoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function PricingPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (authData.user) {
         setEmail(authData.user.email ?? "");
+        setUserId(authData.user.id);
         const pro = await isLinkDropPro(authData.user.id, supabase);
         setIsPro(pro);
       }
@@ -41,7 +43,7 @@ export default function PricingPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, coupon: coupon || undefined }),
+        body: JSON.stringify({ email, coupon: coupon || undefined, user_id: userId }),
       });
 
       const data = await res.json();
