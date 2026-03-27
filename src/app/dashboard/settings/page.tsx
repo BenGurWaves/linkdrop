@@ -183,23 +183,36 @@ export default function SettingsPage() {
                     onClick={() => {
                       setSelectedTheme(key);
                       setDarkMode(theme.dark);
+                      setAccentColor(theme.accent);
+                      if (isPro) {
+                        setProBgColor(theme.bg);
+                        setProLinkColor(theme.linkBg);
+                        setProLinkTextColor(theme.linkText);
+                        setProTextColor(theme.textPrimary);
+                      }
                     }}
-                    className={`rounded-xl border-2 p-4 transition-all ${
+                    className={`rounded-xl border-2 p-3 transition-all overflow-hidden ${
                       selectedTheme === key
-                        ? "border-terracotta"
+                        ? "border-terracotta ring-1 ring-terracotta"
                         : "border-border-light hover:border-border-default"
                     }`}
                     style={{ backgroundColor: css["--ld-bg"] }}
                   >
-                    <div
-                      className="h-2 w-full rounded-full mb-2"
-                      style={{ backgroundColor: css["--ld-accent"] }}
-                    />
+                    {/* Mini template preview */}
+                    <div className="flex flex-col items-center gap-1.5 mb-2">
+                      <div className="w-6 h-6 rounded-full" style={{ backgroundColor: css["--ld-accent"], opacity: 0.7 }} />
+                      <div className="w-12 h-1 rounded-full" style={{ backgroundColor: css["--ld-text-primary"], opacity: 0.4 }} />
+                      <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: css["--ld-text-secondary"], opacity: 0.3 }} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-full rounded-md" style={{ backgroundColor: css["--ld-link-bg"] }} />
+                      <div className="h-4 w-full rounded-md" style={{ backgroundColor: css["--ld-link-bg"], opacity: 0.7 }} />
+                    </div>
                     <p
-                      className="font-[family-name:var(--font-ui)] text-xs"
+                      className="font-[family-name:var(--font-ui)] text-[10px] mt-2 text-center"
                       style={{ color: css["--ld-text-primary"] }}
                     >
-                      {theme.name}{!themes[key].free ? " (pro)" : ""}
+                      {theme.name}{!themes[key].free ? " ✦" : ""}
                     </p>
                   </button>
                 );
