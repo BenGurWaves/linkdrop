@@ -96,6 +96,30 @@ export const themes: Record<string, Theme> = {
     dark: false,
     free: false,
   },
+  lavender: {
+    key: "lavender",
+    name: "Lavender",
+    bg: "#f3f0ff",
+    accent: "#7c6fa0",
+    textPrimary: "#2d2640",
+    textSecondary: "#8b83a3",
+    linkBg: "#7c6fa0",
+    linkText: "#ffffff",
+    dark: false,
+    free: false,
+  },
+  noir: {
+    key: "noir",
+    name: "Noir",
+    bg: "#0d0d0d",
+    accent: "#d4af37",
+    textPrimary: "#e8e4dc",
+    textSecondary: "#8a8578",
+    linkBg: "#d4af37",
+    linkText: "#0d0d0d",
+    dark: true,
+    free: false,
+  },
 };
 
 export const freeThemeKeys = Object.keys(themes).filter((k) => themes[k].free);
