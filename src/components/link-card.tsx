@@ -4,10 +4,12 @@ import SocialIcon from "./social-icon";
 export default function LinkCard({
   link,
   style,
+  bodyFontClass,
   trackingUrl,
 }: {
   link: LdLink;
   style: { bg: string; text: string };
+  bodyFontClass?: string;
   trackingUrl?: string;
 }) {
   const href = trackingUrl ?? link.url;
@@ -23,7 +25,7 @@ export default function LinkCard({
         color: style.text,
       }}
     >
-      <span className="inline-flex items-center gap-2 font-[family-name:var(--font-body)] text-sm font-medium">
+      <span className={`inline-flex items-center gap-2 ${bodyFontClass ?? "font-[family-name:var(--font-body)]"} text-sm font-medium`}>
         {link.icon && <SocialIcon platform={link.icon} size={16} />}
         {link.title}
       </span>

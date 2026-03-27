@@ -186,10 +186,7 @@ export default function DashboardHome() {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-8">
         <Link href={`/dashboard/editor?page=${page.id}`} className="btn btn-dark">
-          edit links
-        </Link>
-        <Link href={`/dashboard/settings?page=${page.id}`} className="btn btn-outline">
-          settings
+          edit page
         </Link>
         <button
           onClick={async () => {

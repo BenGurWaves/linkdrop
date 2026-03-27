@@ -18,6 +18,13 @@ export default function BioPage({
   const theme = getTheme(page.theme);
   const cssVars = themeToCSS(theme, page.accent_color || undefined, isPro ? page.custom_css : undefined);
   const customFont = isPro && typeof page.custom_css?.font === "string" ? page.custom_css.font : "instrument-serif";
+  const customBodyFont = isPro && typeof page.custom_css?.bodyFont === "string" ? page.custom_css.bodyFont : "dm-sans";
+
+  const bodyFontClass =
+    customBodyFont === "instrument-serif" ? "font-[family-name:var(--font-display)]" :
+    customBodyFont === "space-grotesk" ? "font-[family-name:var(--font-ui)]" :
+    customBodyFont === "system" ? "font-sans" :
+    "font-[family-name:var(--font-body)]";
 
   const visibleLinks = links
     .filter((l) => l.visible)
@@ -61,7 +68,7 @@ export default function BioPage({
         {/* Bio */}
         {page.bio && (
           <p
-            className="font-[family-name:var(--font-body)] text-sm text-center max-w-xs leading-relaxed"
+            className={`${bodyFontClass} text-sm text-center max-w-xs leading-relaxed`}
             style={{ color: cssVars["--ld-text-secondary"] }}
           >
             {page.bio}
@@ -78,6 +85,7 @@ export default function BioPage({
                 bg: cssVars["--ld-link-bg"],
                 text: cssVars["--ld-link-text"],
               }}
+              bodyFontClass={bodyFontClass}
               trackingUrl={`/go/${link.id}`}
             />
           ))}
