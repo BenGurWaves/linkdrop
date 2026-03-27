@@ -17,8 +17,13 @@ export default function BioPage({
 }) {
   const theme = getTheme(page.theme);
   const cssVars = themeToCSS(theme, page.accent_color || undefined, isPro ? page.custom_css : undefined);
-  const customFont = isPro && typeof page.custom_css?.font === "string" ? page.custom_css.font : "instrument-serif";
-  const customBodyFont = isPro && typeof page.custom_css?.bodyFont === "string" ? page.custom_css.bodyFont : "dm-sans";
+  // Font: Pro custom override > theme default
+  const customFont = isPro && typeof page.custom_css?.font === "string"
+    ? page.custom_css.font
+    : theme.font;
+  const customBodyFont = isPro && typeof page.custom_css?.bodyFont === "string"
+    ? page.custom_css.bodyFont
+    : theme.bodyFont;
 
   const bodyFontClass =
     customBodyFont === "instrument-serif" ? "font-[family-name:var(--font-display)]" :

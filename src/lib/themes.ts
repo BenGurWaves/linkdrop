@@ -9,9 +9,12 @@ export type Theme = {
   linkText: string;
   dark: boolean;
   free: boolean;
+  font: string;
+  bodyFont: string;
 };
 
 export const themes: Record<string, Theme> = {
+  // ─── FREE THEMES (3) ───
   sage: {
     key: "sage",
     name: "Sage",
@@ -23,6 +26,8 @@ export const themes: Record<string, Theme> = {
     linkText: "#FFFFFF",
     dark: false,
     free: true,
+    font: "instrument-serif",
+    bodyFont: "dm-sans",
   },
   dusk: {
     key: "dusk",
@@ -35,6 +40,8 @@ export const themes: Record<string, Theme> = {
     linkText: "#3A3A38",
     dark: true,
     free: true,
+    font: "instrument-serif",
+    bodyFont: "dm-sans",
   },
   terracotta: {
     key: "terracotta",
@@ -47,31 +54,11 @@ export const themes: Record<string, Theme> = {
     linkText: "#FFFFFF",
     dark: false,
     free: true,
+    font: "instrument-serif",
+    bodyFont: "dm-sans",
   },
-  midnight: {
-    key: "midnight",
-    name: "Midnight",
-    bg: "#1a1a2e",
-    accent: "#e94560",
-    textPrimary: "#F5F0EB",
-    textSecondary: "#a0a0b0",
-    linkBg: "#e94560",
-    linkText: "#ffffff",
-    dark: true,
-    free: false,
-  },
-  forest: {
-    key: "forest",
-    name: "Forest",
-    bg: "#1b4332",
-    accent: "#95d5b2",
-    textPrimary: "#d8f3dc",
-    textSecondary: "#95d5b2",
-    linkBg: "#95d5b2",
-    linkText: "#1b4332",
-    dark: true,
-    free: false,
-  },
+
+  // ─── PRO LIGHT THEMES ───
   sand: {
     key: "sand",
     name: "Sand",
@@ -83,18 +70,8 @@ export const themes: Record<string, Theme> = {
     linkText: "#ffffff",
     dark: false,
     free: false,
-  },
-  monochrome: {
-    key: "monochrome",
-    name: "Monochrome",
-    bg: "#ffffff",
-    accent: "#000000",
-    textPrimary: "#000000",
-    textSecondary: "#666666",
-    linkBg: "#000000",
-    linkText: "#ffffff",
-    dark: false,
-    free: false,
+    font: "dm-sans",
+    bodyFont: "dm-sans",
   },
   lavender: {
     key: "lavender",
@@ -107,6 +84,52 @@ export const themes: Record<string, Theme> = {
     linkText: "#ffffff",
     dark: false,
     free: false,
+    font: "instrument-serif",
+    bodyFont: "space-grotesk",
+  },
+  monochrome: {
+    key: "monochrome",
+    name: "Mono",
+    bg: "#ffffff",
+    accent: "#000000",
+    textPrimary: "#000000",
+    textSecondary: "#666666",
+    linkBg: "#000000",
+    linkText: "#ffffff",
+    dark: false,
+    free: false,
+    font: "space-grotesk",
+    bodyFont: "space-grotesk",
+  },
+
+  // ─── PRO DARK THEMES ───
+  midnight: {
+    key: "midnight",
+    name: "Midnight",
+    bg: "#1a1a2e",
+    accent: "#e94560",
+    textPrimary: "#F5F0EB",
+    textSecondary: "#a0a0b0",
+    linkBg: "#e94560",
+    linkText: "#ffffff",
+    dark: true,
+    free: false,
+    font: "space-grotesk",
+    bodyFont: "dm-sans",
+  },
+  forest: {
+    key: "forest",
+    name: "Forest",
+    bg: "#1b4332",
+    accent: "#95d5b2",
+    textPrimary: "#d8f3dc",
+    textSecondary: "#95d5b2",
+    linkBg: "#95d5b2",
+    linkText: "#1b4332",
+    dark: true,
+    free: false,
+    font: "dm-sans",
+    bodyFont: "space-grotesk",
   },
   noir: {
     key: "noir",
@@ -119,6 +142,8 @@ export const themes: Record<string, Theme> = {
     linkText: "#0d0d0d",
     dark: true,
     free: false,
+    font: "instrument-serif",
+    bodyFont: "instrument-serif",
   },
 };
 

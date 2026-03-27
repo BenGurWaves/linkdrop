@@ -209,8 +209,8 @@ export default function EditorPage() {
       if (proLinkColor) customCss.linkColor = proLinkColor;
       if (proLinkTextColor) customCss.linkTextColor = proLinkTextColor;
       if (proTextColor) customCss.textColor = proTextColor;
-      if (proFont && proFont !== "instrument-serif") customCss.font = proFont;
-      if (proBodyFont && proBodyFont !== "dm-sans") customCss.bodyFont = proBodyFont;
+      if (proFont) customCss.font = proFont;
+      if (proBodyFont) customCss.bodyFont = proBodyFont;
     }
 
     // Update page (profile + design + seo)
@@ -317,8 +317,8 @@ export default function EditorPage() {
     if (proLinkColor) customCssPreview.linkColor = proLinkColor;
     if (proLinkTextColor) customCssPreview.linkTextColor = proLinkTextColor;
     if (proTextColor) customCssPreview.textColor = proTextColor;
-    if (proFont && proFont !== "instrument-serif") customCssPreview.font = proFont;
-    if (proBodyFont && proBodyFont !== "dm-sans") customCssPreview.bodyFont = proBodyFont;
+    if (proFont) customCssPreview.font = proFont;
+    if (proBodyFont) customCssPreview.bodyFont = proBodyFont;
   }
 
   const previewPage: LdPage = {
@@ -557,6 +557,8 @@ export default function EditorPage() {
                           setSelectedTheme(key);
                           setDarkMode(theme.dark);
                           setAccentColor(theme.accent);
+                          setProFont(theme.font);
+                          setProBodyFont(theme.bodyFont);
                           if (isPro) {
                             setProBgColor(theme.bg);
                             setProLinkColor(theme.linkBg);
