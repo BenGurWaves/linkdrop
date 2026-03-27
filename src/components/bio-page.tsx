@@ -17,6 +17,7 @@ export default function BioPage({
 }) {
   const theme = getTheme(page.theme);
   const cssVars = themeToCSS(theme, page.accent_color || undefined, isPro ? page.custom_css : undefined);
+  const customFont = isPro && typeof page.custom_css?.font === "string" ? page.custom_css.font : "instrument-serif";
 
   const visibleLinks = links
     .filter((l) => l.visible)
@@ -46,7 +47,12 @@ export default function BioPage({
 
         {/* Display Name */}
         <h1
-          className="font-[family-name:var(--font-display)] text-[32px] leading-tight text-center"
+          className={`text-[32px] leading-tight text-center ${
+            customFont === "dm-sans" ? "font-[family-name:var(--font-body)]" :
+            customFont === "space-grotesk" ? "font-[family-name:var(--font-ui)]" :
+            customFont === "system" ? "font-sans" :
+            "font-[family-name:var(--font-display)]"
+          }`}
           style={{ color: cssVars["--ld-text-primary"] }}
         >
           {page.display_name}

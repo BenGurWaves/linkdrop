@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [proLinkColor, setProLinkColor] = useState("");
   const [proLinkTextColor, setProLinkTextColor] = useState("");
   const [proTextColor, setProTextColor] = useState("");
+  const [proFont, setProFont] = useState("instrument-serif");
 
   useEffect(() => {
     async function load() {
@@ -86,6 +87,7 @@ export default function SettingsPage() {
       if (typeof css.linkColor === "string") setProLinkColor(css.linkColor);
       if (typeof css.linkTextColor === "string") setProLinkTextColor(css.linkTextColor);
       if (typeof css.textColor === "string") setProTextColor(css.textColor);
+      if (typeof css.font === "string") setProFont(css.font);
     }
     load();
   }, [router, searchParams]);
@@ -102,6 +104,7 @@ export default function SettingsPage() {
       if (proLinkColor) customCss.linkColor = proLinkColor;
       if (proLinkTextColor) customCss.linkTextColor = proLinkTextColor;
       if (proTextColor) customCss.textColor = proTextColor;
+      if (proFont && proFont !== "instrument-serif") customCss.font = proFont;
     }
 
     await supabase
@@ -141,6 +144,7 @@ export default function SettingsPage() {
     if (proLinkColor) customCssPreview.linkColor = proLinkColor;
     if (proLinkTextColor) customCssPreview.linkTextColor = proLinkTextColor;
     if (proTextColor) customCssPreview.textColor = proTextColor;
+    if (proFont && proFont !== "instrument-serif") customCssPreview.font = proFont;
   }
 
   const previewPage: LdPage = {
@@ -220,28 +224,36 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Accent Color */}
-          <div className="card">
-            <p className="label mb-3">accent color</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
-              />
-              <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
-                {accentColor}
-              </span>
+          {/* Accent Color (Free) */}
+          {!isPro && (
+            <div className="card">
+              <p className="label mb-3">accent color</p>
+              <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-2">
+                changes link button color
+              </p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value)}
+                  className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
+                />
+                <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
+                  {accentColor}
+                </span>
+              </div>
+              <p className="font-[family-name:var(--font-body)] text-xs text-text-tertiary mt-3">
+                upgrade to pro for full color control + custom fonts
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Pro Full Color Palette */}
           {isPro && (
             <div className="card">
-              <p className="label mb-3">custom colors</p>
+              <p className="label mb-3">colors</p>
               <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-3">
-                override individual colors. leave blank to use theme defaults.
+                customize every color. themes set defaults — tweak from there.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -254,7 +266,7 @@ export default function SettingsPage() {
                       className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
                     />
                     <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
-                      {proBgColor || "default"}
+                      {proBgColor || "theme"}
                     </span>
                     {proBgColor && (
                       <button type="button" onClick={() => setProBgColor("")} className="text-xs text-terracotta">
@@ -264,26 +276,26 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label">link color</label>
+                  <label className="label">link buttons</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={proLinkColor || getTheme(selectedTheme).linkBg}
-                      onChange={(e) => setProLinkColor(e.target.value)}
+                      onChange={(e) => { setProLinkColor(e.target.value); setAccentColor(e.target.value); }}
                       className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
                     />
                     <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
-                      {proLinkColor || "default"}
+                      {proLinkColor || "theme"}
                     </span>
                     {proLinkColor && (
-                      <button type="button" onClick={() => setProLinkColor("")} className="text-xs text-terracotta">
+                      <button type="button" onClick={() => { setProLinkColor(""); setAccentColor(getTheme(selectedTheme).accent); }} className="text-xs text-terracotta">
                         reset
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label className="label">link text</label>
+                  <label className="label">button text</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -292,7 +304,7 @@ export default function SettingsPage() {
                       className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
                     />
                     <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
-                      {proLinkTextColor || "default"}
+                      {proLinkTextColor || "theme"}
                     </span>
                     {proLinkTextColor && (
                       <button type="button" onClick={() => setProLinkTextColor("")} className="text-xs text-terracotta">
@@ -302,7 +314,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label">text color</label>
+                  <label className="label">heading & bio</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -311,7 +323,7 @@ export default function SettingsPage() {
                       className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
                     />
                     <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
-                      {proTextColor || "default"}
+                      {proTextColor || "theme"}
                     </span>
                     {proTextColor && (
                       <button type="button" onClick={() => setProTextColor("")} className="text-xs text-terracotta">
@@ -320,6 +332,40 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Pro Font Picker */}
+          {isPro && (
+            <div className="card">
+              <p className="label mb-3">display font</p>
+              <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-3">
+                changes the heading/name font on your page
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: "instrument-serif", name: "Instrument Serif", preview: "font-[family-name:var(--font-display)]" },
+                  { key: "dm-sans", name: "DM Sans", preview: "font-[family-name:var(--font-body)]" },
+                  { key: "space-grotesk", name: "Space Grotesk", preview: "font-[family-name:var(--font-ui)]" },
+                  { key: "system", name: "System", preview: "font-sans" },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setProFont(f.key)}
+                    className={`rounded-lg border-2 p-3 text-left transition-all ${
+                      proFont === f.key
+                        ? "border-terracotta"
+                        : "border-border-light hover:border-border-default"
+                    }`}
+                  >
+                    <span className={`${f.preview} text-lg text-text-primary`}>Aa</span>
+                    <p className="font-[family-name:var(--font-ui)] text-[10px] text-text-tertiary mt-1">
+                      {f.name}
+                    </p>
+                  </button>
+                ))}
               </div>
             </div>
           )}
