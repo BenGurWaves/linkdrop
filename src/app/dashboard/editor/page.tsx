@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LdPage, LdLink } from "@/lib/supabase";
 import BioPage from "@/components/bio-page";
+import { isLinkDropPro } from "@/lib/check-pro";
 
 type EditableLink = {
   id: string | null;
@@ -12,6 +13,8 @@ type EditableLink = {
   url: string;
   visible: boolean;
   position: number;
+  schedule_start?: string | null;
+  schedule_end?: string | null;
   _deleted?: boolean;
 };
 
@@ -23,6 +26,7 @@ export default function EditorPage() {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [editLinks, setEditLinks] = useState<EditableLink[]>([]);
+  const [isPro, setIsPro] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -30,6 +34,9 @@ export default function EditorPage() {
     async function load() {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) return;
+
+      const pro = await isLinkDropPro(authData.user.id);
+      setIsPro(pro);
 
       const pageParam = searchParams.get("page");
 
@@ -81,6 +88,8 @@ export default function EditorPage() {
           url: l.url,
           visible: l.visible,
           position: l.position,
+          schedule_start: l.schedule_start,
+          schedule_end: l.schedule_end,
         }))
       );
     }
@@ -143,10 +152,16 @@ export default function EditorPage() {
     const remaining = editLinks.filter((l) => !l._deleted);
     await Promise.all(
       remaining.map((l, i) => {
+        const scheduleFields = isPro
+          ? {
+              schedule_start: l.schedule_start || null,
+              schedule_end: l.schedule_end || null,
+            }
+          : {};
         if (l.id) {
           return supabase
             .from("ld_links")
-            .update({ title: l.title, url: l.url, visible: l.visible, position: i })
+            .update({ title: l.title, url: l.url, visible: l.visible, position: i, ...scheduleFields })
             .eq("id", l.id);
         } else {
           return supabase.from("ld_links").insert({
@@ -156,6 +171,7 @@ export default function EditorPage() {
             visible: l.visible,
             position: i,
             link_type: "url",
+            ...scheduleFields,
           });
         }
       })
@@ -293,6 +309,38 @@ export default function EditorPage() {
                       placeholder="https://"
                       className="input text-sm"
                     />
+                    {isPro && (
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="font-[family-name:var(--font-ui)] text-[10px] text-text-tertiary">
+                            show from
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={link.schedule_start ?? ""}
+                            onChange={(e) => {
+                              const realIndex = editLinks.indexOf(link);
+                              updateLink(realIndex, "schedule_start", e.target.value);
+                            }}
+                            className="input text-xs"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="font-[family-name:var(--font-ui)] text-[10px] text-text-tertiary">
+                            hide after
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={link.schedule_end ?? ""}
+                            onChange={(e) => {
+                              const realIndex = editLinks.indexOf(link);
+                              updateLink(realIndex, "schedule_end", e.target.value);
+                            }}
+                            className="input text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center gap-1 pt-1">
                     <button

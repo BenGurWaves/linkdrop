@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { themes, getTheme, themeToCSS } from "@/lib/themes";
+import { themes, freeThemeKeys, getTheme, themeToCSS } from "@/lib/themes";
 import type { LdPage } from "@/lib/supabase";
 import Link from "next/link";
 import { isLinkDropPro } from "@/lib/check-pro";
@@ -21,6 +21,10 @@ export default function SettingsPage() {
   const [seoDescription, setSeoDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [proBgColor, setProBgColor] = useState("");
+  const [proLinkColor, setProLinkColor] = useState("");
+  const [proLinkTextColor, setProLinkTextColor] = useState("");
+  const [proTextColor, setProTextColor] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -67,6 +71,13 @@ export default function SettingsPage() {
       setCustomDomain(p.custom_domain ?? "");
       setSeoTitle(p.seo_title ?? "");
       setSeoDescription(p.seo_description ?? "");
+
+      // Load Pro custom color overrides
+      const css = p.custom_css ?? {};
+      if (typeof css.bgColor === "string") setProBgColor(css.bgColor);
+      if (typeof css.linkColor === "string") setProLinkColor(css.linkColor);
+      if (typeof css.linkTextColor === "string") setProLinkTextColor(css.linkTextColor);
+      if (typeof css.textColor === "string") setProTextColor(css.textColor);
     }
     load();
   }, [router, searchParams]);
@@ -75,6 +86,15 @@ export default function SettingsPage() {
     if (!page) return;
     setSaving(true);
     setSaved(false);
+
+    // Build custom_css overrides for Pro
+    const customCss: Record<string, string> = {};
+    if (isPro) {
+      if (proBgColor) customCss.bgColor = proBgColor;
+      if (proLinkColor) customCss.linkColor = proLinkColor;
+      if (proLinkTextColor) customCss.linkTextColor = proLinkTextColor;
+      if (proTextColor) customCss.textColor = proTextColor;
+    }
 
     await supabase
       .from("ld_pages")
@@ -87,6 +107,7 @@ export default function SettingsPage() {
               custom_domain: customDomain || null,
               seo_title: seoTitle || null,
               seo_description: seoDescription || null,
+              custom_css: customCss,
             }
           : {}),
       })
@@ -104,7 +125,7 @@ export default function SettingsPage() {
 
   if (!page) return null;
 
-  const themeKeys = Object.keys(themes);
+  const themeKeys = isPro ? Object.keys(themes) : freeThemeKeys;
 
   return (
     <div className="animate-in">
@@ -124,7 +145,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6">
         {/* Theme */}
         <div className="card">
-          <p className="label mb-4">theme</p>
+          <p className="label mb-4">theme{isPro ? "" : " (upgrade to pro for more)"}</p>
           <div className="grid grid-cols-3 gap-3">
             {themeKeys.map((key) => {
               const theme = getTheme(key);
@@ -152,7 +173,7 @@ export default function SettingsPage() {
                     className="font-[family-name:var(--font-ui)] text-xs"
                     style={{ color: css["--ld-text-primary"] }}
                   >
-                    {theme.name}
+                    {theme.name}{!themes[key].free ? " (pro)" : ""}
                   </p>
                 </button>
               );
@@ -175,6 +196,94 @@ export default function SettingsPage() {
             </span>
           </div>
         </div>
+
+        {/* Pro Full Color Palette */}
+        {isPro && (
+          <div className="card">
+            <p className="label mb-3">custom colors</p>
+            <p className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary mb-3">
+              override individual colors. leave blank to use theme defaults.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">background</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={proBgColor || getTheme(selectedTheme).bg}
+                    onChange={(e) => setProBgColor(e.target.value)}
+                    className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
+                  />
+                  <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
+                    {proBgColor || "default"}
+                  </span>
+                  {proBgColor && (
+                    <button type="button" onClick={() => setProBgColor("")} className="text-xs text-terracotta">
+                      reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="label">link color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={proLinkColor || getTheme(selectedTheme).linkBg}
+                    onChange={(e) => setProLinkColor(e.target.value)}
+                    className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
+                  />
+                  <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
+                    {proLinkColor || "default"}
+                  </span>
+                  {proLinkColor && (
+                    <button type="button" onClick={() => setProLinkColor("")} className="text-xs text-terracotta">
+                      reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="label">link text</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={proLinkTextColor || getTheme(selectedTheme).linkText}
+                    onChange={(e) => setProLinkTextColor(e.target.value)}
+                    className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
+                  />
+                  <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
+                    {proLinkTextColor || "default"}
+                  </span>
+                  {proLinkTextColor && (
+                    <button type="button" onClick={() => setProLinkTextColor("")} className="text-xs text-terracotta">
+                      reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="label">text color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={proTextColor || getTheme(selectedTheme).textPrimary}
+                    onChange={(e) => setProTextColor(e.target.value)}
+                    className="h-9 w-9 cursor-pointer rounded-md border border-border-light"
+                  />
+                  <span className="font-[family-name:var(--font-ui)] text-xs text-text-tertiary">
+                    {proTextColor || "default"}
+                  </span>
+                  {proTextColor && (
+                    <button type="button" onClick={() => setProTextColor("")} className="text-xs text-terracotta">
+                      reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dark Mode */}
         <div className="card">
@@ -213,6 +322,12 @@ export default function SettingsPage() {
                   placeholder="links.yourdomain.com"
                   className="input"
                 />
+                <ol className="mt-2 font-[family-name:var(--font-ui)] text-xs text-text-tertiary list-decimal list-inside flex flex-col gap-1">
+                  <li>add a CNAME record in your DNS provider</li>
+                  <li>point it to: <code className="font-mono text-text-secondary">linkdrop.calyvent.com</code></li>
+                  <li>enter your domain above and save</li>
+                  <li>allow up to 24 hours for DNS propagation</li>
+                </ol>
               </div>
               <div>
                 <label htmlFor="seoTitle" className="label">

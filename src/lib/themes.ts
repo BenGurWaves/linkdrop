@@ -48,6 +48,54 @@ export const themes: Record<string, Theme> = {
     dark: false,
     free: true,
   },
+  midnight: {
+    key: "midnight",
+    name: "Midnight",
+    bg: "#1a1a2e",
+    accent: "#e94560",
+    textPrimary: "#F5F0EB",
+    textSecondary: "#a0a0b0",
+    linkBg: "#e94560",
+    linkText: "#ffffff",
+    dark: true,
+    free: false,
+  },
+  forest: {
+    key: "forest",
+    name: "Forest",
+    bg: "#1b4332",
+    accent: "#95d5b2",
+    textPrimary: "#d8f3dc",
+    textSecondary: "#95d5b2",
+    linkBg: "#95d5b2",
+    linkText: "#1b4332",
+    dark: true,
+    free: false,
+  },
+  sand: {
+    key: "sand",
+    name: "Sand",
+    bg: "#fefae0",
+    accent: "#bc6c25",
+    textPrimary: "#283618",
+    textSecondary: "#606c38",
+    linkBg: "#bc6c25",
+    linkText: "#ffffff",
+    dark: false,
+    free: false,
+  },
+  monochrome: {
+    key: "monochrome",
+    name: "Monochrome",
+    bg: "#ffffff",
+    accent: "#000000",
+    textPrimary: "#000000",
+    textSecondary: "#666666",
+    linkBg: "#000000",
+    linkText: "#ffffff",
+    dark: false,
+    free: false,
+  },
 };
 
 export const freeThemeKeys = Object.keys(themes).filter((k) => themes[k].free);
@@ -58,10 +106,11 @@ export function getTheme(key: string): Theme {
 
 export function themeToCSS(
   theme: Theme,
-  accentOverride?: string
+  accentOverride?: string,
+  customCss?: Record<string, unknown>
 ): Record<string, string> {
   const accent = accentOverride ?? theme.accent;
-  return {
+  const base: Record<string, string> = {
     "--ld-bg": theme.bg,
     "--ld-accent": accent,
     "--ld-text-primary": theme.textPrimary,
@@ -69,4 +118,17 @@ export function themeToCSS(
     "--ld-link-bg": accentOverride ?? theme.linkBg,
     "--ld-link-text": theme.linkText,
   };
+
+  // Apply Pro custom color overrides from custom_css jsonb
+  if (customCss) {
+    if (typeof customCss.bgColor === "string") base["--ld-bg"] = customCss.bgColor;
+    if (typeof customCss.linkColor === "string") base["--ld-link-bg"] = customCss.linkColor;
+    if (typeof customCss.linkTextColor === "string") base["--ld-link-text"] = customCss.linkTextColor;
+    if (typeof customCss.textColor === "string") {
+      base["--ld-text-primary"] = customCss.textColor;
+      base["--ld-text-secondary"] = customCss.textColor;
+    }
+  }
+
+  return base;
 }

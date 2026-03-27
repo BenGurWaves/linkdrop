@@ -16,7 +16,7 @@ export default function BioPage({
   showGlyphPromo?: boolean;
 }) {
   const theme = getTheme(page.theme);
-  const cssVars = themeToCSS(theme, page.accent_color || undefined);
+  const cssVars = themeToCSS(theme, page.accent_color || undefined, isPro ? page.custom_css : undefined);
 
   const visibleLinks = links
     .filter((l) => l.visible)

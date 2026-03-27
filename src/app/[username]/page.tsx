@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BioPage from "@/components/bio-page";
 import type { LdPage, LdLink } from "@/lib/supabase";
+import { isLinkDropPro } from "@/lib/check-pro";
 
 function getSupabase() {
   return createClient(
@@ -87,18 +88,8 @@ export default async function UsernamePage({
     );
   }
 
-  // Check LinkDrop-specific subscription
-  const { data: subs } = await sb
-    .from("subscriptions")
-    .select("id, payment_reference, status")
-    .eq("user_id", typedPage.user_id)
-    .eq("status", "active")
-    .eq("plan", "pro");
-
-  const isPro = (subs ?? []).some(
-    (sub: { payment_reference?: string | null }) =>
-      sub.payment_reference?.startsWith("ld:")
-  );
+  // Check LinkDrop-specific subscription using shared helper
+  const isPro = await isLinkDropPro(typedPage.user_id, sb);
 
   // Fetch links
   const { data: linksRaw } = await sb
